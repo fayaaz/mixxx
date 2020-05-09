@@ -98,8 +98,8 @@ TraktorS4MK2 = new function() {
 }
 
 TraktorS4MK2.registerInputPackets = function() {
-  MessageShort = new HIDPacket("shortmessage", [0x01], 21, this.shortMessageCallback);
-  MessageLong = new HIDPacket("longmessage", [0x02], 79, this.longMessageCallback);
+  MessageShort = new HIDPacket("shortmessage", 0x01, this.shortMessageCallback);
+  MessageLong = new HIDPacket("longmessage", 0x02, this.longMessageCallback);
 
   // Values in the short message are all buttons, except the jog wheels.
   // An exclamation point indicates a specially-handled function.  Everything else is a standard
@@ -338,9 +338,9 @@ TraktorS4MK2.registerInputPackets = function() {
 }
 
 TraktorS4MK2.registerOutputPackets = function() {
-  Output1 = new HIDPacket("output1", [0x80], 53);
-  Output2 = new HIDPacket("output2", [0x81], 63);
-  Output3 = new HIDPacket("output3", [0x82], 61);
+  Output1 = new HIDPacket("output1", 0x80);
+  Output2 = new HIDPacket("output2", 0x81);
+  Output3 = new HIDPacket("output3", 0x82);
 
   Output1.addOutput("[Channel1]", "track_samples", 0x10, "B");
   Output1.addOutput("[Channel2]", "track_samples", 0x18, "B");
@@ -667,23 +667,21 @@ TraktorS4MK2.lightDeck = function(group) {
 TraktorS4MK2.pointlessLightShow = function() {
   var packets = [Object(), Object(), Object()];
 
-  packets[0].length = 53;
-  packets[1].length = 63;
-  packets[2].length = 61;
+  packets[0].length = 52;
+  packets[1].length = 62;
+  packets[2].length = 60;
 
   // Fade up all lights evenly from 0 to 0x7F
   for (k = 0; k < 0x7F; k+=0x05) {
     for (var i = 0; i < packets.length; i++) {
-      // Packet header
-      packets[i][0] = 0x80 + i;
-      for (j = 1; j < packets[i].length; j++) {
+      for (j = 0; j < packets[i].length; j++) {
         packets[i][j] = k;
       }
     }
 
-    controller.send(packets[0], packets[0].length, 0);
-    controller.send(packets[1], packets[1].length, 0);
-    controller.send(packets[2], packets[2].length, 0);
+    controller.send(packets[0], packets[0].length, 0x80);
+    controller.send(packets[1], packets[1].length, 0x81);
+    controller.send(packets[2], packets[2].length, 0x82);
     // "sleep"
     var then = Date.now();
     while (true) {
@@ -733,15 +731,15 @@ TraktorS4MK2.debugLights = function() {
   //                    "81 0B 03 00 0B 03 00 0B 03 00 0B 03 00 0B 03 00 0B 03 00 0B 03 00 0B 03 00 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 7F 0A 0A 0A 0A 0A 7F 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A",
   //                    "82 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 0A 00 00 7F 7F 7F 7F 7F 7F 00 00 7F 7F 7F 7F 7F 00 00 00 7F 7F 7F 7F 7F 7F 00 00 7F 7F 7F 7F 7F 00 00 00"];
   //                   00 01 02 03  04 05 06 07  08 09 0A 0B  0C 0D 0E 0F
-  var data_strings = ["80 00 00 00  00 00 00 00  0A 00 00 00  00 00 00 00  \n" +
+  var data_strings = ["00 00 00  00 00 00 00  0A 00 00 00  00 00 00 00  \n" +
                       "0A 00 00 00  00 00 00 00  0A 00 00 00  00 00 00 00  \n" +
                       "0A 0A 0A 0A  0A 0A 0A 0A  0A 00 7F 00  00 00 00 0A  \n" +
                       "0A 0A 0A 0A  0A",
-                      "81 00 00 7F  7F 03 7F 0B  03 7F 0B 03  7F 0B 03 7F  \n" +
+                      "00 00 7F  7F 03 7F 0B  03 7F 0B 03  7F 0B 03 7F  \n" +
                       "0B 03 7F 0B  03 00 7f 03  7F 0A 0A 0A  00 7f 0A 0A  \n" +
                       "00 7f 0A 0A  0A 0A 0A 0A  7F 0A 0a 0A  0a 0a 7f 0a  \n" +
                       "0a 0a 0a 0a  7F 0A 0A 0A  0a 0a 0a 0a  0a 0a 0a",
-                      "82 0a 0A 0A  0a 0a 0a 0A  0A 0A 0A 0A  0a 0a 0A 0A  \n" +
+                      "0a 0A 0A  0a 0a 0a 0A  0A 0A 0A 0A  0a 0a 0A 0A  \n" +
                       "0a 0a 0a 0a  0a 0a 0a 0a  0A 0A 0a 0a  00 00 00 00  \n" +
                       "7f 00 00 7f  00 7F 7F 7F  7F 7F 7f 7f  00 7F 7F 7F  \n" +
                       "7F 7F 7F 00  00 7F 7F 7F  7F 7F 00 7f  00"];
@@ -766,7 +764,7 @@ TraktorS4MK2.debugLights = function() {
       data[i][j] = b;
     }
     if (ok) {
-      controller.send(data[i], data[i].length, 0);
+      controller.send(data[i], data[i].length, 0x80 + i);
     }
   }
 }
@@ -820,7 +818,11 @@ TraktorS4MK2.incomingData = function(data, length) {
     this.partial_packet = Object();
     return;
   }
-
+  if (length == 79) {
+    // Windows seems to get the packet of length 79, so parse as one:
+    TraktorS4MK2.controller.parsePacket(data, data.length);
+    return;
+  }
   HIDDebug("Traktor S4MK2: Unhandled packet size: " + length);
 }
 
@@ -1449,7 +1451,7 @@ TraktorS4MK2.callbackBrowse = function(field) {
     engine.setValue("[Playlist]", "SelectPlaylist", delta);
   }
   else {
-    engine.setValue("[Playlist]", "SelectTrackKnob", delta);
+    engine.setValue("[Library]", "MoveVertical", delta);
   }
 }
 

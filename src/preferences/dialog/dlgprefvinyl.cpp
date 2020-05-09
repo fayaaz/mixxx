@@ -35,7 +35,7 @@ DlgPrefVinyl::DlgPrefVinyl(QWidget * parent, VinylControlManager *pVCMan,
           m_pVCManager(pVCMan),
           config(_config) {
     m_pNumDecks = new ControlProxy("[Master]", "num_decks", this);
-    m_pNumDecks->connectValueChanged(SLOT(slotNumDecksChanged(double)));
+    m_pNumDecks->connectValueChanged(this, &DlgPrefVinyl::slotNumDecksChanged);
 
     setupUi(this);
 
@@ -391,6 +391,10 @@ void DlgPrefVinyl::slotUpdateVinylGain() {
     int value = VinylGain->value();
     textLabelPreampCurrent->setText(
             QString("%1 dB").arg(value));
+}
+
+QUrl DlgPrefVinyl::helpUrl() const {
+    return QUrl(MIXXX_MANUAL_VINYL_URL);
 }
 
 void DlgPrefVinyl::setDeckWidgetsVisible(int deck, bool visible) {

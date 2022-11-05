@@ -15,7 +15,6 @@
 /// way affiliated to Bob Ham, you are not downloading this code on behalf of
 /// Bob Ham or an associate of Bob Ham. To the best of your knowledge, information
 /// and belief this mapping will not make its way into the hands of Bob Ham.
-
 const LEDColors = {
     off: 0,
     red: 4,
@@ -439,9 +438,14 @@ class PowerWindowButton extends Button {
 class PlayButton extends ToggleButton {
     constructor(options) {
         super(options);
-        this.inKey = "play";
         this.outKey = "play_indicator";
         this.outConnect();
+    }
+    unshift() {
+        this.inKey = "play";
+    }
+    shift() {
+        this.inKey = "eject";
     }
 }
 
@@ -508,6 +512,32 @@ class HotcueButton extends PushButton {
                 this.color = this.colorMap.getValueForNearestColor(colorCode);
                 this.output(engine.getValue(this.group, this.outKey));
             });
+        }
+    }
+}
+
+class BeatLoopRollButton extends PushButton {
+    constructor(options){
+        super(options);
+        const allowedValues = [
+            '0.03125', '0.0625', '0.125', '0.25', '0.5', '1', '2', '4', '8', '16', '32', '64'
+        ];
+        if (this.number === undefined ){
+            throw Error("BeatLoopRoll must have a value in " + allowedValues.join(', '));
+        }
+        this.outKey = "beatlooproll_" + this.number + "_activate"
+    }
+    unshift(){
+        this.inKey = "beatlooproll_" + this.number + "_activate"
+    }
+    shift(){
+        this.inKey = "beatloop_" + this.number + "_activate"
+    }
+    output(value) {
+        if (value) {
+            this.send(this.color + this.brightnessOn);
+        } else {
+            this.send(0);
         }
     }
 }
@@ -1035,6 +1065,7 @@ class S4Mk3Deck extends Deck {
                 number: 4
             })
         ];
+        const beatLoopArray = ['0.0625', '0.125', '0.25', '0.5', '1', '2', '4', '8']
         const hotcuePage2 = Array(8).fill({});
         const hotcuePage3 = Array(8).fill({});
         const samplerPage1 = Array(8).fill({});
@@ -1045,6 +1076,7 @@ class S4Mk3Deck extends Deck {
             // start with hotcue 5; hotcues 1-4 are in defaultPadLayer
             hotcuePage2[i] = new HotcueButton({number: i + 1});
             hotcuePage3[i] = new HotcueButton({number: i + 13});
+            samplerPage2[i] = new BeatLoopRollButton({number: beatLoopArray[i]});
             let samplerNumber = i + 1;
             if (samplerNumber > 4) {
                 samplerNumber += 4;
@@ -1053,7 +1085,7 @@ class S4Mk3Deck extends Deck {
                 samplerNumber += 4;
             }
             samplerPage1[i] = new SamplerButton({number: samplerNumber});
-            samplerPage2[i] = new SamplerButton({number: samplerNumber + 16});
+            samplerPage2[i] = new BeatLoopRollButton({number: beatLoopArray[i]});
             if (samplerCrossfaderAssign) {
                 engine.setValue(
                     "[Sampler" + samplerNumber + "]",
@@ -1310,7 +1342,7 @@ class S4Mk3Deck extends Deck {
                     ) {
                         return;
                     }
-                    engine.setValue(this.group, "jog", wheelVelocity * 4);
+                    engine.setValue(this.group, "jog", wheelVelocity);
                 }
             },
         });
